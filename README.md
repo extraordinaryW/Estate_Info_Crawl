@@ -120,10 +120,12 @@ python main.py --show-districts --spider xx
 
 ## 输出文件
 
-- 京东法拍房数据：`output/京东法拍房_数据.xlsx`
+- 京东法拍房数据概览：`output/京东法拍房_数据.xlsx`
+![法拍房数据概览](images/数据概览表.jpg)
 - 链家二手房数据：`output/链家二手房_区域名.xlsx`
 - 日志文件：`logs/爬虫名称.log`
 - 附件和图片：`output/京东法拍/资产名称/`
+![法拍房详细数据](images/保存的数据详细内容.jpg)
 
 ## 注意事项
 
