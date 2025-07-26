@@ -54,8 +54,6 @@ pip install -r requirements.txt
 
 ### 1. 京东法拍房爬虫
 
-#### 方法一：使用记住登录信息功能（推荐）
-
 首次运行：
 ```bash
 python main.py --spider jd
@@ -66,23 +64,10 @@ python main.py --spider jd
 3. 提示您手动登录
 4. 登录成功后自动保存登录信息
 
-后续运行：
-```bash
-python main.py --spider jd
-```
 程序会自动：
 1. 检测登录状态
 2. 如果已登录，直接开始爬取
 3. 如果登录失效，提示重新登录
-
-#### 方法二：使用调试模式（传统方式）
-
-首先启动Chrome调试模式：
-```bash
-chrome.exe --remote-debugging-port=9222 --user-data-dir="你的用户数据目录"
-```
-
-在打开的浏览器中访问京东法拍网站并登录，然后运行爬虫：
 
 ```bash
 # 基本使用

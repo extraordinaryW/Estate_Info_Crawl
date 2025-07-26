@@ -77,19 +77,19 @@ def main():
     主函数
     """
     parser = argparse.ArgumentParser(description="房产信息爬虫")
-    parser.add_argument("--spider", choices=["jd", "lianjia", "both"], default="jd", # 调试
+    parser.add_argument("--spider", choices=["jd", "lianjia", "both"], default=None, # 调试
                        help="选择要运行的爬虫: jd(京东法拍房), lianjia(链家二手房), both(两个都运行)")
     
     # 京东法拍房参数
-    parser.add_argument("--jd-start-page", type=int, default=31,
+    parser.add_argument("--jd-start-page", type=int, default=None,
                        help="京东法拍房开始页码 (默认: 1)")
     parser.add_argument("--jd-max-pages", type=int, default=None,
                        help="京东法拍房最大爬取页数")
-    parser.add_argument("--jd-province", type=str, default="sc", # 调试
+    parser.add_argument("--jd-province", type=str, default=None, # 调试
                        help="京东法拍房要爬取的省份")
-    parser.add_argument("--jd-city", type=str, default="cd", # 调试 
+    parser.add_argument("--jd-city", type=str, default=None, # 调试 
                        help="京东法拍房要爬取的城市")
-    parser.add_argument("--jd-cutoff-time", type=str, default="2017年01月01日 00:00:00",
+    parser.add_argument("--jd-cutoff-time", type=str, default=None,
                        help="京东法拍房截止时间，格式为'YYYY年MM月DD日 HH:MM:SS'，当拍卖结束时间早于此时间时停止爬取")
     
     # 链家二手房参数
