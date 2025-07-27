@@ -42,8 +42,8 @@ class JDAuctionSpider(BaseSpider):
         self.should_stop = False  # 控制爬取停止的标志
         
         # 设置省份和城市
-        self.province = province or self.config["default_province"]
-        self.city = city or self.config["default_city"]
+        self.province = province
+        self.city = city
         
         # 验证省份和城市是否有效
         self._validate_location()
