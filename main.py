@@ -86,7 +86,7 @@ def main():
     parser.add_argument("--jd-max-pages", type=int, default=None,
                        help="京东法拍房最大爬取页数")
     parser.add_argument("--jd-province", type=str, default=None, # 调试
-                       help="京东法拍房要爬取的省份")
+                       required=True, help="京东法拍房要爬取的省份")
     parser.add_argument("--jd-city", type=str, default=None, # 调试 
                        help="京东法拍房要爬取的城市")
     parser.add_argument("--jd-cutoff-time", type=str, default=None,
