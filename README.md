@@ -79,8 +79,8 @@ python main.py --spider jd --jd-start-page 5 --jd-max-pages 10
 # 使用截止时间功能（只爬取结束时间在指定时间之后的拍卖）
 python main.py --spider jd --jd-cutoff-time "2024年01月01日 00:00:00"
 
-# 组合使用多个参数
-python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-cutoff-time "2024年01月01日 12:00:00"
+# 组合使用多个参数（选择省份和城市为广东-深圳）
+python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-province gd --jd-city sz --jd-cutoff-time "2024年01月01日 12:00:00"
 ```
 
 ### 2. 链家二手房爬虫
