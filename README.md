@@ -83,6 +83,40 @@ python main.py --spider jd --jd-cutoff-time "2024年01月01日 00:00:00"
 python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-province gd --jd-city sz --jd-cutoff-time "2024年01月01日 12:00:00"
 ```
 
+### 京东法拍房省份和城市参数说明
+
+京东法拍房爬虫支持以下省份和城市参数：
+
+#### 支持的省份代码：
+- `gd` - 广东省
+- `zj` - 浙江省  
+- `bj` - 北京市
+- `sh` - 上海市
+- `sc` - 四川省
+- `hb` - 湖北省
+
+#### 支持的城市代码：
+- `sz` - 深圳市（广东省）
+- `hz` - 杭州市（浙江省）
+- `cd` - 成都市（四川省）
+- `wh` - 武汉市（湖北省）
+
+#### 省份与城市对应关系：
+- 广东省 (`gd`) → 深圳市 (`sz`)
+- 浙江省 (`zj`) → 杭州市 (`hz`)
+- 四川省 (`sc`) → 成都市 (`cd`)
+- 湖北省 (`hb`) → 武汉市 (`wh`)
+- 北京市 (`bj`) → 无下属城市
+- 上海市 (`sh`) → 无下属城市
+
+#### 使用示例：
+```bash
+# 爬取广东省深圳市的数据
+python main.py --spider jd --jd-province gd --jd-city sz
+
+# 爬取北京市的数据（直辖市，无需指定城市）
+python main.py --spider jd --jd-province bj
+```
 ### 2. 链家二手房爬虫
 
 ```bash
@@ -91,6 +125,37 @@ python main.py --spider lianjia
 
 # 爬取指定区域
 python main.py --spider lianjia --lianjia-districts 南山区 福田区
+
+# 限制每个区域的最大页数
+python main.py --spider lianjia --lianjia-max-pages 5
+```
+
+### 链家二手房区域参数说明
+
+链家二手房爬虫目前支持深圳市的以下区域：
+
+#### 支持的深圳区域：
+- **罗湖区**：百仕达、布心、春风路、翠竹、地王、东门、洪湖、黄贝岭、黄木岗、莲塘、罗湖口岸、螺岭、清水河、笋岗、万象城、新秀、银湖
+- **福田区**：八卦岭、百花、车公庙、赤尾、福田保税区、福田中心、皇岗、黄木岗、华强北、华强南、景田、莲花、梅林、上步、上下沙、沙尾、石厦、香梅北、香蜜湖、新洲、银湖、园岭、竹子林
+- **南山区**：白石洲、大学城、红树湾、后海、华侨城、科技园、南山中心、南头、前海、蛇口、深圳湾、西丽
+- **盐田区**：梅沙、沙头角、盐田港
+- **宝安区**：宝安中心、碧海、翻身、福永、航城、沙井、石岩、松岗、桃源居、曦城、新安、西乡
+- **龙岗区**：布吉大芬、布吉关、布吉街、布吉南岭、布吉石芽岭、布吉水径、丹竹头、大运新城、横岗、龙岗宝荷、龙岗双龙、龙岗中心城、坪地、平湖
+- **龙华区**：坂田、观澜、红山、龙华新区、龙华中心、梅林关、民治、上塘
+- **光明区**：公明、光明
+- **坪山区**：坪山
+- **大鹏新区**：大鹏半岛
+
+#### 使用示例：
+```bash
+# 爬取所有区域
+python main.py --spider lianjia
+
+# 爬取指定区域
+python main.py --spider lianjia --lianjia-districts 南山区 福田区
+
+# 爬取多个区域
+python main.py --spider lianjia --lianjia-districts 罗湖区 福田区 南山区
 
 # 限制每个区域的最大页数
 python main.py --spider lianjia --lianjia-max-pages 5
@@ -107,6 +172,23 @@ python main.py --spider both
 ```bash
 python main.py --show-districts --spider xx
 ```
+
+## 参数快速参考
+
+### 京东法拍房参数
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--jd-province` | 省份代码 | `gd`(广东)、`zj`(浙江)、`bj`(北京)、`sh`(上海)、`sc`(四川)、`hb`(湖北) |
+| `--jd-city` | 城市代码 | `sz`(深圳)、`hz`(杭州)、`cd`(成都)、`wh`(武汉) |
+| `--jd-start-page` | 开始页码 | `1` |
+| `--jd-max-pages` | 最大页数 | `10` |
+| `--jd-cutoff-time` | 截止时间 | `"2024年01月01日 00:00:00"` |
+
+### 链家二手房参数
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--lianjia-districts` | 区域名称 | `南山区`、`福田区`、`罗湖区`等 |
+| `--lianjia-max-pages` | 每个区域最大页数 | `5` |
 
 ## 配置说明
 
