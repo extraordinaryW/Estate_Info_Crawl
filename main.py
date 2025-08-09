@@ -9,7 +9,7 @@ from spiders.jd_auction_spider import JDAuctionSpider
 from spiders.lianjia_spider import LianjiaSpider
 from config import Config
 
-def run_jd_auction_spider(start_page: int = 1, max_pages: int = None, province: str = None, city: str = None, cutoff_time: str = None) -> None:
+def run_jd_auction_spider(start_page: int = 1, max_pages: int = None, province: str = None, city: str = None, cutoff_time: str = None, resume_from_archive: bool = False) -> None:
     """
     运行京东法拍房爬虫
     
@@ -19,6 +19,7 @@ def run_jd_auction_spider(start_page: int = 1, max_pages: int = None, province: 
         province: 要爬取的省份
         city: 要爬取的城市
         cutoff_time: 截止时间，格式为"YYYY年MM月DD日 HH:MM:SS"
+        resume_from_archive: 是否从存档恢复爬取
     """
     print("=" * 50)
     print("京东法拍房爬虫")
@@ -28,9 +29,11 @@ def run_jd_auction_spider(start_page: int = 1, max_pages: int = None, province: 
     print(f"   chrome.exe --remote-debugging-port={Config.JD_AUCTION_CONFIG['debug_port']} --user-data-dir=\"你的用户数据目录\"")
     print("2. 在打开的浏览器中访问京东法拍网站并登录")
     print("3. 然后运行此程序")
+    if resume_from_archive:
+        print("4. 存档恢复模式已启用，将从上次爬取停止的位置继续")
     print("=" * 50)
     
-    spider = JDAuctionSpider(start_page=start_page, max_pages=max_pages, province=province, city=city, cutoff_time=cutoff_time)
+    spider = JDAuctionSpider(start_page=start_page, max_pages=max_pages, province=province, city=city, cutoff_time=cutoff_time, resume_from_archive=resume_from_archive)
     spider.start()
 
 def run_lianjia_spider(districts: List[str] = None, max_pages: int = None) -> None:
@@ -91,6 +94,8 @@ def main():
                        help="京东法拍房要爬取的城市")
     parser.add_argument("--jd-cutoff-time", type=str, default=None,
                        help="京东法拍房截止时间，格式为'YYYY年MM月DD日 HH:MM:SS'，当拍卖结束时间早于此时间时停止爬取")
+    parser.add_argument("--jd-resume-from-archive", action="store_true",
+                       help="京东法拍房从存档恢复爬取，自动找到最后一条记录并从下一条开始")
     
     # 链家二手房参数
     parser.add_argument("--lianjia-districts", nargs="+", default=None,
@@ -123,7 +128,8 @@ def main():
                 max_pages=args.jd_max_pages,
                 province=args.jd_province,
                 city=args.jd_city,
-                cutoff_time=args.jd_cutoff_time
+                cutoff_time=args.jd_cutoff_time,
+                resume_from_archive=args.jd_resume_from_archive
             )
         
         if args.spider in ["lianjia", "both"]:

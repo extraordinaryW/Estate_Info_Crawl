@@ -35,6 +35,7 @@ estate_info_crawl/
 - 自动下载附件和图片
 - 支持分页爬取
 - **支持截止时间过滤**：当拍卖结束时间早于设定时间时自动停止爬取
+- **支持断点续传**：从上次爬取停止的位置继续爬取，避免重复数据
 - 数据保存为Excel格式
 
 ### 链家二手房爬虫
@@ -81,6 +82,9 @@ python main.py --spider jd --jd-cutoff-time "2024年01月01日 00:00:00"
 
 # 组合使用多个参数（选择省份和城市为广东-深圳）
 python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-province gd --jd-city sz --jd-cutoff-time "2024年01月01日 12:00:00"
+
+# 使用断点续传功能（从上次停止的位置继续爬取）
+python main.py --spider jd --jd-province gd --jd-city sz --jd-resume-from-archive
 ```
 
 ### 京东法拍房省份和城市参数说明
@@ -183,6 +187,7 @@ python main.py --show-districts --spider xx
 | `--jd-start-page` | 开始页码 | `1` |
 | `--jd-max-pages` | 最大页数 | `10` |
 | `--jd-cutoff-time` | 截止时间 | `"2024年01月01日 00:00:00"` |
+| `--jd-resume-from-archive` | 断点续传 | 无需参数，添加此选项即可启用 | 最好配合--jd-start-page参数一起使用，以便快速定位到开始爬取信息所在页 |
 
 ### 链家二手房参数
 | 参数 | 说明 | 示例 |
@@ -209,6 +214,32 @@ python main.py --show-districts --spider xx
 - 附件和图片：`output/京东法拍/资产名称/`
 ![法拍房详细数据](images/保存的数据详细内容.jpg)
 
+## 断点续传功能详解
+
+### 工作原理
+1. **自动扫描存档**：程序启动时自动扫描 `/output` 目录下的所有 `京东法拍房_数据_错误保存.xlsx` 文件
+2. **读取最后记录**：获取文件中最后一条记录的"资产名称"
+3. **定位续爬点**：在爬取过程中跳过所有记录，直到找到匹配的资产名称
+4. **开始续爬**：从匹配记录的下一条开始正式爬取新数据
+
+### 使用场景
+- **长时间爬取中断**：当爬取过程被意外中断时，可以从断点继续
+- **避免重复数据**：避免重复爬取已经获取的数据
+- **提高爬取效率**：节省时间和资源
+
+### 使用示例
+```bash
+# 第一次运行（正常爬取）
+python main.py --spider jd --jd-province gd --jd-max-pages 10
+
+# 第二次运行（断点续传）
+python main.py --spider jd --jd-province gd --jd-max-pages 20 --jd-resume-from-archive
+```
+python main.py --spider jd --jd-province sc --jd-city cd --jd-start-page 58 --jd-max-pages 999 --jd-resume-from-archive --jd-cutoff-time "2017年01月01日 00:00:00"
+### 注意事项
+- 存档文件必须位于 `/output` 目录下名称必须为“京东法拍房_数据_错误保存.xlsx”
+- 程序会显示详细的日志信息，包括跳过的记录和找到的续爬点
+
 ## 注意事项
 
 1. **京东法拍房爬虫**：
@@ -220,6 +251,12 @@ python main.py --show-districts --spider xx
      - 例如：`2024年01月15日 12:30:00`
      - 当发现拍卖结束时间早于截止时间时，爬虫会停止并保存已收集的数据
      - 该功能可用于只爬取最近的拍卖数据，提高效率
+   - **断点续传功能**：
+     - 自动读取 `/output` 目录下最新的 `京东法拍房_数据_错误保存.xlsx` 文件
+     - 获取最后一条记录的"资产名称"
+     - 从该记录的下一条开始继续爬取
+     - 避免重复爬取已有数据，提高爬取效率
+     - 适用于长时间爬取中断后的恢复
 
 2. **链家二手房爬虫**：
    - 程序会自动打开浏览器

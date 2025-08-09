@@ -23,7 +23,7 @@ from datetime import datetime
 class JDAuctionSpider(BaseSpider):
     """京东法拍房爬虫"""
     
-    def __init__(self, start_page: int = 1, max_pages: int = None, province: str = None, city: str = None, cutoff_time: str = None):
+    def __init__(self, start_page: int = 1, max_pages: int = None, province: str = None, city: str = None, cutoff_time: str = None, resume_from_archive: bool = False):
         """
         初始化京东法拍房爬虫
         
@@ -33,6 +33,7 @@ class JDAuctionSpider(BaseSpider):
             province: 要爬取的省份
             city: 要爬取的城市
             cutoff_time: 截止时间，格式为"YYYY年MM月DD日 HH:MM:SS"，当拍卖结束时间早于此时间时停止爬取
+            resume_from_archive: 是否从存档恢复爬取
         """
         super().__init__("京东法拍房")
         self.start_page = start_page
@@ -40,6 +41,9 @@ class JDAuctionSpider(BaseSpider):
         self.config = Config.JD_AUCTION_CONFIG
         self.cutoff_time = cutoff_time
         self.should_stop = False  # 控制爬取停止的标志
+        self.resume_from_archive = resume_from_archive
+        self.last_crawled_asset_name = None  # 存档中最后一条记录的资产名称
+        self.should_start_crawling = True  # 是否开始正式爬取的标志
         
         # 设置省份和城市
         self.province = province
@@ -52,6 +56,15 @@ class JDAuctionSpider(BaseSpider):
         if self.cutoff_time:
             self._validate_cutoff_time()
             self.logger.info(f"设置截止时间: {self.cutoff_time}")
+        
+        # 如果启用存档恢复，获取最后一条记录的资产名称
+        if self.resume_from_archive:
+            self.last_crawled_asset_name = self._get_last_asset_name_from_archive()
+            if self.last_crawled_asset_name:
+                self.should_start_crawling = False  # 需要先找到对应记录
+                self.logger.info(f"启用存档恢复模式，最后爬取的资产名称: {self.last_crawled_asset_name}")
+            else:
+                self.logger.warning("未找到存档文件或存档文件为空，将从头开始爬取")
     
     def _validate_cutoff_time(self) -> None:
         """
@@ -103,6 +116,48 @@ class JDAuctionSpider(BaseSpider):
         except ValueError as e:
             self.logger.warning(f"时间比较失败: {e}")
             return False
+
+    def _get_last_asset_name_from_archive(self) -> Optional[str]:
+        """
+        从存档文件中获取最后一条记录的资产名称
+        
+        Returns:
+            Optional[str]: 最后一条记录的资产名称，如果没有找到则返回None
+        """
+        try:
+            # 获取output目录下的所有xlsx文件
+            output_dir = Config.OUTPUT_DIR
+            xlsx_files = os.path.join(output_dir, "京东法拍房_数据_错误保存.xlsx")
+            
+            if not xlsx_files:
+                self.logger.info("未找到任何xlsx存档文件")
+                return None
+            
+            # 读取Excel文件
+            df = pd.read_excel(xlsx_files)
+            
+            if df.empty:
+                self.logger.info("存档文件为空")
+                return None
+            
+            # 检查是否包含"资产名称"列
+            if "资产名称" not in df.columns:
+                self.logger.warning("存档文件中未找到'资产名称'列")
+                return None
+            
+            # 获取最后一条记录的资产名称
+            last_asset_name = df["资产名称"].iloc[-1]
+            
+            if pd.isna(last_asset_name) or str(last_asset_name).strip() == "":
+                self.logger.warning("最后一条记录的资产名称为空")
+                return None
+            
+            self.logger.info(f"从存档文件中读取到最后一条记录的资产名称: {last_asset_name}")
+            return str(last_asset_name.split("】")[1]).strip()
+            
+        except Exception as e:
+            self.logger.error(f"读取存档文件失败: {e}")
+            return None
 
     def _validate_location(self) -> None:
         """
@@ -674,6 +729,13 @@ class JDAuctionSpider(BaseSpider):
         consecutive_failures = 0  # 连续失败次数
         max_consecutive_failures = 3  # 最大连续失败次数
         
+        # 存档恢复模式的日志记录
+        if self.resume_from_archive:
+            if self.last_crawled_asset_name:
+                self.logger.info(f"存档恢复模式启动，正在寻找资产名称: {self.last_crawled_asset_name}")
+            else:
+                self.logger.info("存档恢复模式启动，但未找到有效的存档数据，将从头开始爬取")
+        
         while page_no <= self.max_pages and not self.should_stop:
             try:
                 self.logger.info(f"正在爬取第 {page_no} 页")
@@ -776,25 +838,37 @@ class JDAuctionSpider(BaseSpider):
             
             # 获取基本信息
             link = element.find_element(By.XPATH, ".//a").get_property("href")
+            item_name = element.find_element(By.XPATH, ".//a/div[2]/div[1]").text
             image = element.find_element(By.XPATH, ".//a/div[1]/div/img").get_attribute('src')
             current_value = element.find_element(By.XPATH, ".//a/div[2]/div[2]/div[2]/em/b").text
             esti_value = element.find_element(By.XPATH, ".//a/div[2]/div[3]/div[1]/em").text
+
+            # 如果启用了存档恢复模式，检查是否应该开始爬取
+            if self.resume_from_archive and not self.should_start_crawling:
+                if item_name == self.last_crawled_asset_name:
+                    self.logger.info(f"找到存档中的最后一条记录: {item_name}，跳过该记录，从下一条开始爬取")
+                    self.should_start_crawling = True
+                    return  # 跳过这一条记录
+                else:
+                    self.logger.info(f"跳过记录: {item_name} (正在寻找: {self.last_crawled_asset_name})")
+                    return  # 继续跳过，直到找到目标记录
             
             # 获取详细信息
             detail_info = self.get_auction_detail(link)
             if not detail_info:
                 return
+            current_asset_name = detail_info.get('资产名称', '')
             
             # 检查结束时间是否早于截止时间
             end_time = detail_info.get('结束时间', '')
             if self._is_end_time_before_cutoff(end_time):
-                self.logger.info(f"拍卖项 '{detail_info.get('资产名称', '')}' 的结束时间早于截止时间，设置停止标志")
+                self.logger.info(f"拍卖项 '{current_asset_name}' 的结束时间早于截止时间，设置停止标志")
                 self.should_stop = True
                 # 仍然保存当前这一条数据，然后停止
             
             # 构建数据项
             data_item = {
-                "资产名称": detail_info.get('资产名称', ''),
+                "资产名称": current_asset_name,
                 "竞价状态": item_status,
                 "结束时间": detail_info.get('结束时间', ''),
                 "是否流拍": detail_info.get('是否流拍', ''),
@@ -816,7 +890,7 @@ class JDAuctionSpider(BaseSpider):
             }
             
             self.add_data(data_item)
-            self.logger.info(f"成功处理拍卖项: {detail_info.get('资产名称', '')}")
+            self.logger.info(f"成功处理拍卖项: {current_asset_name}")
             
             # 如果设置了停止标志，提前返回
             if self.should_stop:
@@ -1248,7 +1322,8 @@ class JDAuctionSpider(BaseSpider):
                     sleep(random.uniform(2, 4))
                 else:
                     self.logger.warning(f"翻页后页面内容未变化，可能受到反爬虫限制")
-                    break
+                    # break
+                    continue
                     
             except Exception as e:
                 self.logger.error(f"跳转页面失败: {e}")
