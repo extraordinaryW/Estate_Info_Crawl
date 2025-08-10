@@ -932,20 +932,20 @@ class JDAuctionSpider(BaseSpider):
             # 获取详细信息
             detail_info = self.extract_detail_info()
             
-            # 下载附件和图片
-            self.download_attachments(detail_info.get('资产名称', ''))
+            # # 下载附件和图片
+            # self.download_attachments(detail_info.get('资产名称', ''))
 
-            # 获取标的物调查表
-            self.extract_property_survey_table(detail_info.get('资产名称', ''))
+            # # 获取标的物调查表
+            # self.extract_property_survey_table(detail_info.get('资产名称', ''))
 
-            # 获取竞买公告和竞买须知
-            self.extract_notice_info(detail_info.get('资产名称', ''))
+            # # 获取竞买公告和竞买须知
+            # self.extract_notice_info(detail_info.get('资产名称', ''))
 
-            # 获取竞价记录
-            self.extract_bidding_info(detail_info.get('资产名称', ''))
+            # # 获取竞价记录
+            # self.extract_bidding_info(detail_info.get('资产名称', ''))
 
-            # 获取优先购买权人
-            self.extract_priority_purchaser(detail_info.get('资产名称', ''))
+            # # 获取优先购买权人
+            # self.extract_priority_purchaser(detail_info.get('资产名称', ''))
 
             return detail_info
             
@@ -973,7 +973,7 @@ class JDAuctionSpider(BaseSpider):
             # 获取成交价格
             try:
                 final_price = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, "//*[@id='pageContainer']/div[2]/div[1]/div[2]/div[3]/div[3]/div[1]/div/div[2]/text()"))
+                    EC.presence_of_element_located((By.XPATH, "//*[@id='pageContainer']/div[2]/div[1]/div[2]/div[3]/div[3]/div[1]/div/div[2]"))
                 ).text
             except:
                 final_price = ''
@@ -991,7 +991,7 @@ class JDAuctionSpider(BaseSpider):
             info_html = self.driver.find_element(By.XPATH, "//*[@id='pageContainer']/div[2]/div[1]/div[2]/div[3]/div[1]/div[2]/div").text
             
             # 使用正则表达式提取信息
-            end_time_match = re.search(r'\d{4}年\d{2}月\d{2}日 \d{2}:\d{2}:\d{2}', info_html)
+            end_time_match = re.search(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', info_html)
             end_time = end_time_match.group(0) if end_time_match else ''
             
             watched_match = re.search(r'(\d+)人围观', info_html)
@@ -1000,7 +1000,7 @@ class JDAuctionSpider(BaseSpider):
             signin_match = re.search(r'(\d+)人报名', info_html)
             signin_times = signin_match.group(1) if signin_match else ''
             
-            attention_match = re.search(r'(\d+)人关注提醒', info_html)
+            attention_match = re.search(r'(\d+)人关注', info_html)
             attention_times = attention_match.group(1) if attention_match else ''
             
             bidding_info = self.driver.find_element(By.XPATH, "//*[@id='pageContainer']/div[2]/div[1]/div[2]/div[4]/div[2]/div/div[1]/div/ul").text #竞价信息
