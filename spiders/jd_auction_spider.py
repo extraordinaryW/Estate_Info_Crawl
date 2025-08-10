@@ -932,20 +932,20 @@ class JDAuctionSpider(BaseSpider):
             # 获取详细信息
             detail_info = self.extract_detail_info()
             
-            # # 下载附件和图片
-            # self.download_attachments(detail_info.get('资产名称', ''))
+            # 下载附件和图片
+            self.download_attachments(detail_info.get('资产名称', ''))
 
-            # # 获取标的物调查表
-            # self.extract_property_survey_table(detail_info.get('资产名称', ''))
+            # 获取标的物调查表
+            self.extract_property_survey_table(detail_info.get('资产名称', ''))
 
-            # # 获取竞买公告和竞买须知
-            # self.extract_notice_info(detail_info.get('资产名称', ''))
+            # 获取竞买公告和竞买须知
+            self.extract_notice_info(detail_info.get('资产名称', ''))
 
-            # # 获取竞价记录
-            # self.extract_bidding_info(detail_info.get('资产名称', ''))
+            # 获取竞价记录
+            self.extract_bidding_info(detail_info.get('资产名称', ''))
 
-            # # 获取优先购买权人
-            # self.extract_priority_purchaser(detail_info.get('资产名称', ''))
+            # 获取优先购买权人
+            self.extract_priority_purchaser(detail_info.get('资产名称', ''))
 
             return detail_info
             
