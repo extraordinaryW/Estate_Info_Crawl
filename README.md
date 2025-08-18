@@ -78,10 +78,10 @@ python main.py --spider jd
 python main.py --spider jd --jd-start-page 5 --jd-max-pages 10
 
 # 使用截止时间功能（只爬取结束时间在指定时间之后的拍卖）
-python main.py --spider jd --jd-cutoff-time "2024年01月01日 00:00:00"
+python main.py --spider jd --jd-cutoff-time "2024-01-01 00:00:00"
 
 # 组合使用多个参数（选择省份和城市为广东-深圳）
-python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-province gd --jd-city sz --jd-cutoff-time "2024年01月01日 12:00:00"
+python main.py --spider jd --jd-start-page 1 --jd-max-pages 20 --jd-province gd --jd-city sz --jd-cutoff-time "2024-01-01 12:00:00"
 
 # 使用断点续传功能（从上次停止的位置继续爬取）
 python main.py --spider jd --jd-province gd --jd-city sz --jd-resume-from-archive
@@ -186,7 +186,7 @@ python main.py --show-districts --spider xx
 | `--jd-city` | 城市代码 | `sz`(深圳)、`hz`(杭州)、`cd`(成都)、`wh`(武汉) |
 | `--jd-start-page` | 开始页码 | `1` |
 | `--jd-max-pages` | 最大页数 | `10` |
-| `--jd-cutoff-time` | 截止时间 | `"2024年01月01日 00:00:00"` |
+| `--jd-cutoff-time` | 截止时间 | `"2024-01-01 00:00:00"` |
 | `--jd-resume-from-archive` | 断点续传 | 无需参数，添加此选项即可启用 | 最好配合--jd-start-page参数一起使用，以便快速定位到开始爬取信息所在页 |
 
 ### 链家二手房参数
@@ -235,7 +235,7 @@ python main.py --spider jd --jd-province gd --jd-max-pages 10
 # 第二次运行（断点续传）
 python main.py --spider jd --jd-province gd --jd-max-pages 20 --jd-resume-from-archive
 ```
-python main.py --spider jd --jd-province sc --jd-city cd --jd-start-page 58 --jd-max-pages 999 --jd-resume-from-archive --jd-cutoff-time "2017年01月01日 00:00:00"
+python main.py --spider jd --jd-province sc --jd-city cd --jd-start-page 58 --jd-max-pages 999 --jd-resume-from-archive --jd-cutoff-time "2017-01-01 00:00:00"
 ### 注意事项
 - 存档文件必须位于 `/output` 目录下名称必须为“京东法拍房_数据_错误保存.xlsx”
 - 程序会显示详细的日志信息，包括跳过的记录和找到的续爬点

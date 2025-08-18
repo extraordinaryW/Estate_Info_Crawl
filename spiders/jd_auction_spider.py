@@ -87,7 +87,7 @@ class JDAuctionSpider(BaseSpider):
             datetime: 解析后的datetime对象
         """
         try:
-            return datetime.strptime(time_str, "%Y年%m月%d日 %H:%M:%S")
+            return datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
         except ValueError:
             raise ValueError(f"时间格式错误: {time_str}，正确格式: 'YYYY年MM月DD日 HH:MM:SS'")
     
@@ -723,7 +723,7 @@ class JDAuctionSpider(BaseSpider):
         """
         爬取拍卖数据
         """
-        page_no = 1
+        page_no = int(self.driver.find_element(By.CLASS_NAME, "ui-pager-current").text)
         page_no = self.transfer_to_start_page(page_no, self.start_page)
         
         consecutive_failures = 0  # 连续失败次数
@@ -785,36 +785,24 @@ class JDAuctionSpider(BaseSpider):
                     break
                 
                 # 重置连续失败计数
-                consecutive_failures = 0
                 
                 # 翻页
                 target_page = page_no + 1
-                new_page_no = self.transfer_page(page_no, target_page)
+                new_page_no = self.transfer_to_start_page(page_no, target_page)
                 
                 if new_page_no != target_page:
-                    consecutive_failures += 1
-                    self.logger.warning(f"翻页失败，连续失败次数: {consecutive_failures}")
+                    self.logger.warning(f"翻页失败，目标页数: {target_page}，实际页数: {new_page_no}")
+                    self.save_data()
+                    return
                     
-                    if consecutive_failures >= max_consecutive_failures:
-                        self.logger.error("连续翻页失败次数过多，可能受到反爬虫限制，停止爬取")
-                        break
-                    
-                    # 翻页失败时增加等待时间
-                    sleep(random.uniform(10, 20))
-                
+                else:
+                    break
                 page_no = new_page_no
                 
             except Exception as e:
                 self.logger.error(f"爬取第 {page_no} 页时出错: {e}")
-                consecutive_failures += 1
-                
-                if consecutive_failures >= max_consecutive_failures:
-                    self.logger.error("连续失败次数过多，停止爬取")
-                    break
-                
-                # 出错时增加等待时间
-                sleep(random.uniform(10, 20))
-                page_no += 1
+                self.save_data()
+                return
         
         # 爬取结束，保存数据
         self.logger.info("数据爬取完成，正在保存数据...")
@@ -1295,10 +1283,10 @@ class JDAuctionSpider(BaseSpider):
         Returns:
             int: 实际到达的页码
         """
-        while current_page < target_page:
+        consecutive_failures = 0
+        while consecutive_failures < 3 and current_page < target_page:
             try:
-                # 记录当前页面的内容，用于验证翻页是否成功
-                initial_content = self.get_page_content_signature()
+                current_page = int(self.driver.find_element(By.CLASS_NAME, "ui-pager-current").text)
                 
                 # 查找下一页按钮
                 next_button = self.driver.find_element(By.CLASS_NAME, "ui-pager-next")
@@ -1314,76 +1302,20 @@ class JDAuctionSpider(BaseSpider):
                 # 点击下一页
                 next_button.click()
                 
-                # 等待页面变化
-                if self.wait_for_page_change(initial_content):
+                transferred_page = int(self.driver.find_element(By.CLASS_NAME, "ui-pager-current").text)
+
+                if transferred_page == current_page + 1:
                     current_page += 1
                     self.logger.info(f"成功跳转到第 {current_page} 页")
-                    # 随机等待，避免操作过快
-                    sleep(random.uniform(2, 4))
+                    consecutive_failures = 0
                 else:
-                    self.logger.warning(f"翻页后页面内容未变化，可能受到反爬虫限制")
-                    # break
-                    continue
+                    self.logger.warning(f"跳转页面失败，当前页码: {current_page}，目标页码: {target_page}")
+                    consecutive_failures += 1
                     
             except Exception as e:
                 self.logger.error(f"跳转页面失败: {e}")
                 break
         
-        return current_page
-    
-    def transfer_page(self, current_page: int, target_page: int) -> int:
-        """
-        翻页（增加反反爬虫措施）
-        
-        Args:
-            current_page: 当前页码
-            target_page: 目标页码
-            
-        Returns:
-            int: 实际到达的页码
-        """
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                self.logger.info(f"尝试翻页到第 {target_page} 页 (第{attempt + 1}次)")
-                
-                # 记录当前页面的内容，用于验证翻页是否成功
-                initial_content = self.get_page_content_signature()
-                
-                # 查找下一页按钮
-                next_button = self.driver.find_element(By.CLASS_NAME, "ui-pager-next")
-                
-                # 检查按钮是否可点击
-                if not next_button.is_enabled():
-                    self.logger.info("已到达最后一页")
-                    return current_page
-                
-                # 模拟人类行为：先滚动到按钮位置
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_button)
-                sleep(random.uniform(1, 2))
-                
-                # 模拟鼠标悬停
-                ActionChains(self.driver).move_to_element(next_button).perform()
-                sleep(random.uniform(0.5, 1))
-                
-                # 点击下一页
-                next_button.click()
-                
-                # 等待页面变化
-                if self.wait_for_page_change(initial_content):
-                    self.logger.info(f"翻页成功，当前页码: {current_page + 1}")
-                    return current_page + 1
-                else:
-                    self.logger.warning(f"翻页后页面内容未变化，尝试重新操作 (尝试 {attempt + 1}/{max_retries})")
-                    
-            except Exception as e:
-                self.logger.warning(f"翻页失败 (尝试 {attempt + 1}/{max_retries}): {e}")
-                
-            # 重试前等待
-            if attempt < max_retries - 1:
-                sleep(random.uniform(3, 6))
-        
-        self.logger.error(f"翻页失败，已重试 {max_retries} 次")
         return current_page
     
     def get_page_content_signature(self) -> str:
