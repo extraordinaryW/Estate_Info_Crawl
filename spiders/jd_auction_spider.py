@@ -795,8 +795,6 @@ class JDAuctionSpider(BaseSpider):
                     self.save_data()
                     return
                     
-                else:
-                    break
                 page_no = new_page_no
                 
             except Exception as e:
@@ -1287,25 +1285,42 @@ class JDAuctionSpider(BaseSpider):
         while consecutive_failures < 3 and current_page < target_page:
             try:
                 current_page = int(self.driver.find_element(By.CLASS_NAME, "ui-pager-current").text)
+
+                # 快翻页
+                a_elements = self.driver.find_elements(By.XPATH, '//div[@class="ui-pager"]/a')
+                fast_button = a_elements[-2]   # 取最后一个
                 
                 # 查找下一页按钮
                 next_button = self.driver.find_element(By.CLASS_NAME, "ui-pager-next")
                 
-                # 模拟人类行为：先滚动到按钮位置
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_button)
-                sleep(random.uniform(1, 2))
+                # 翻页执行
+                argument = 0
+                if current_page < target_page - 3:
+                    # 模拟人类行为：先滚动到按钮位置
+                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", fast_button)
+                    sleep(random.uniform(1, 2))
+                    
+                    # 模拟鼠标悬停
+                    ActionChains(self.driver).move_to_element(next_button).perform()
+                    sleep(random.uniform(0.5, 1))
+                    fast_button.click()
+                    argument = 6 if current_page == 1 else 3
                 
-                # 模拟鼠标悬停
-                ActionChains(self.driver).move_to_element(next_button).perform()
-                sleep(random.uniform(0.5, 1))
-                
-                # 点击下一页
-                next_button.click()
-                
+                else:
+                    # 模拟人类行为：先滚动到按钮位置
+                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_button)
+                    sleep(random.uniform(1, 2))
+                    
+                    # 模拟鼠标悬停
+                    ActionChains(self.driver).move_to_element(next_button).perform()
+                    sleep(random.uniform(0.5, 1))
+                    next_button.click()
+                    argument = 1
+
                 transferred_page = int(self.driver.find_element(By.CLASS_NAME, "ui-pager-current").text)
 
-                if transferred_page == current_page + 1:
-                    current_page += 1
+                if transferred_page == current_page + argument:
+                    current_page += argument
                     self.logger.info(f"成功跳转到第 {current_page} 页")
                     consecutive_failures = 0
                 else:
