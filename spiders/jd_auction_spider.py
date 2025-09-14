@@ -210,6 +210,9 @@ class JDAuctionSpider(BaseSpider):
             
             # 选择地区
             self.select_location()
+
+            # 手动进行更多筛选
+            input("如需进行更多筛选，请手动操作，按回车键继续...")
             
             # 开始爬取
             self.crawl_auction_data()

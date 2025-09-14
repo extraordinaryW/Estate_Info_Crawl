@@ -235,7 +235,7 @@ python main.py --spider jd --jd-province gd --jd-max-pages 10
 # 第二次运行（断点续传）
 python main.py --spider jd --jd-province gd --jd-max-pages 20 --jd-resume-from-archive
 ```
-python main.py --spider jd --jd-province sc --jd-city cd --jd-start-page 58 --jd-max-pages 999 --jd-resume-from-archive --jd-cutoff-time "2017-01-01 00:00:00"
+python main.py --spider jd --jd-province sc --jd-city cd --jd-start-page 140 --jd-max-pages 999 --jd-cutoff-time "2017-01-01 00:00:00"
 ### 注意事项
 - 存档文件必须位于 `/output` 目录下名称必须为“京东法拍房_数据_错误保存.xlsx”
 - 程序会显示详细的日志信息，包括跳过的记录和找到的续爬点
