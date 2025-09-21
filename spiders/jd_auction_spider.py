@@ -842,6 +842,11 @@ class JDAuctionSpider(BaseSpider):
                     self.logger.info(f"跳过记录: {item_name} (正在寻找: {self.last_crawled_asset_name})")
                     return  # 继续跳过，直到找到目标记录
             
+            # 跳过车位、车库拍卖项
+            if '车位' in item_name or '车库' or '地下室' in item_name:
+                self.logger.info(f"跳过车位、车库、地下室拍卖项: {item_name}")
+                return
+
             # 获取详细信息
             detail_info = self.get_auction_detail(link)
             if not detail_info:
